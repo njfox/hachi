@@ -1,11 +1,13 @@
 #ifndef CHIP8_H
 #define CHIP8_H
 
+#include "cpu.h"
+#include "keyboard.h"
+
 #include <array>
 #include <cstdint>
+#include <memory>
 #include <string>
-
-#include "cpu.h"
 
 using std::string;
 using std::array;
@@ -15,7 +17,8 @@ class Chip8 {
     array<uint16_t, 16> stack{{}};
     uint64_t clock_speed{540};
     Display display{};
-    Cpu cpu{clock_speed, &display, &ram, &stack};
+    Keyboard keyboard{};
+    Cpu cpu{clock_speed, &display, &keyboard, &ram, &stack};
     static constexpr array<uint8_t, 80> default_sprites{{ 0xF0, 0x90, 0x90, 0x90, 0xF0, // 0
                                                           0x20, 0x60, 0x20, 0x20, 0x70, // 1
                                                           0xF0, 0x10, 0xF0, 0x80, 0xF0, // 2
@@ -45,6 +48,7 @@ public:
     bool decrement_sound();
     bool decrement_delay();
     Display* get_display();
+    Keyboard* get_keyboard();
     uint64_t get_clock_speed();
 };
 

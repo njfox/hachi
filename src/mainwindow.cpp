@@ -2,20 +2,29 @@
 #include "include/hachi.h"
 #include "include/display.h"
 
-#include <QtWidgets>
 #include <cstdint>
+
+#include <QtWidgets>
+#include <QtMultimedia/QMediaPlayer>
+#include <QByteArray>
+
+#include <cmrc/cmrc.hpp>
+
+CMRC_DECLARE(hachi);
 
 MainWindow::MainWindow(QWidget *parent)
     : QMainWindow(parent) {
     Chip8 chip8{};
 
     setup_menus();
+    setup_sound();
 
     resize(QDesktopWidget().availableGeometry(this).size() * 0.68);
     move(screen()->geometry().center() - frameGeometry().center());
 
 
     chip8_display = new QImage(64, 32, QImage::Format_Mono);
+    chip8_display->fill(0);
     canvas = new QPixmap(QPixmap::fromImage(chip8_display->scaled(canvas_width, canvas_height, Qt::KeepAspectRatio, Qt::SmoothTransformation)));
 
     scene = new QGraphicsScene(this);
@@ -26,17 +35,17 @@ MainWindow::MainWindow(QWidget *parent)
 }
 
 MainWindow::~MainWindow() {
-    delete scene;
-    delete view;
-    delete hachi;
     delete chip8_display;
     delete canvas;
+    delete audioBuf;
 }
 
 void MainWindow::keyPressEvent(QKeyEvent *e) {
-    if (hachi) {
-        QApplication::sendEvent(hachi, e);
-    }
+    emit keyPress(e);
+}
+
+void MainWindow::keyReleaseEvent(QKeyEvent* e) {
+    emit keyRelease(e);
 }
 
 void MainWindow::setup_menus() {
@@ -49,12 +58,29 @@ void MainWindow::setup_menus() {
     emulationMenu->addAction(new QAction("Resume"));
     emulationMenu->addAction(new QAction("Settings"));
 
-    connect(fileMenu->actions().at(0), SIGNAL(triggered()), this, SLOT(on_open_rom()));
-    connect(fileMenu->actions().at(1), SIGNAL(triggered()), this, SLOT(on_close_rom()));
+    connect(fileMenu->actions().at(0), &QAction::triggered, this, &MainWindow::on_open_rom);
+    connect(fileMenu->actions().at(1), &QAction::triggered, this, &MainWindow::on_close_rom);
+}
+
+void MainWindow::setup_sound() {
+    auto fs = cmrc::hachi::get_filesystem();
+    auto beep = fs.open("resources/beep.mp3");
+    audioBuf = new QByteArray(beep.begin(), beep.size());
+
+
+    mediaPlayer = new QMediaPlayer(this);
+    QBuffer* mediaBuf = new QBuffer(audioBuf, mediaPlayer);
+    mediaBuf->setData(*audioBuf);
+    mediaBuf->open(QIODevice::ReadOnly);
+    mediaPlayer->setMedia(QMediaContent(), mediaBuf);
 }
 
 void MainWindow::on_beep() {
+    mediaPlayer->play();
+}
 
+void MainWindow::on_stop_beep() {
+    mediaPlayer->stop();
 }
 
 void MainWindow::on_refresh_screen(const PixelBuffer* pixel_buffer) {
@@ -76,19 +102,23 @@ void MainWindow::on_open_rom() {
         on_close_rom();
     }
     auto filename = QFileDialog::getOpenFileName(this, tr("Open ROM"), QDir::homePath(), tr(".ch8"));
-    hachi = new Hachi(filename.toStdString());
+    hachi = new Hachi(this, filename.toStdString());
 
     connect(hachi, &Hachi::refresh_screen, this, &MainWindow::on_refresh_screen);
     connect(hachi, &Hachi::beep, this, &MainWindow::on_beep);
-    hachi->start();
+    connect(hachi, &Hachi::stop_beep, this, &MainWindow::on_stop_beep);
+    connect(hachi, &Hachi::shutdown_complete, this, &MainWindow::shutdown_complete);
 }
 
 void MainWindow::on_close_rom() {
-    if (hachi) {
-        hachi->requestInterruption();
-        hachi->wait();
-    }
+    emit shutdown();
     clear_screen();
+}
+
+void MainWindow::shutdown_complete() {
+    if (hachi) {
+        delete hachi;
+    }
 }
 
 void MainWindow::clear_screen() {

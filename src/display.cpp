@@ -2,20 +2,18 @@
 
 #include "include/display.h"
 
-bool Display::draw(int8_t x, int8_t y, uint8_t* sprite, int8_t size) {
+bool Display::draw(uint8_t x, uint8_t y, uint8_t* sprite, int8_t size) {
     bool collision{ false };
-    int8_t* pixel{};
+    uint8_t* pixel{};
     uint8_t byte{};
-    int8_t x_start = x;
-    int8_t buffer_width = pixel_buffer.size();
-    int8_t buffer_height = pixel_buffer.at(0).size();
+    uint8_t x_start = x;
+    uint8_t buffer_width = pixel_buffer.size();
+    uint8_t buffer_height = pixel_buffer.at(0).size();
     for (int8_t i{}; i < size; i++) {
         byte = *sprite;
         for (int8_t j{7}; j >= 0; j--) {
             if (x >= buffer_width) { x = 0; }
-            if (x < 0) { x = buffer_width - 1; }
             if (y >= buffer_height) { y = 0; }
-            if (y < 0) { y = buffer_height - 1; }
             pixel = &pixel_buffer.at(x).at(y);
             bool bit_set = byte & (1 << j);
             if (*pixel == 0x01 && bit_set) {

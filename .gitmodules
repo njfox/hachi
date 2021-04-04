@@ -4,3 +4,6 @@
 [submodule "extern/fmt"]
 	path = extern/fmt
 	url = https://github.com/fmtlib/fmt
+[submodule "extern/cmrc"]
+	path = extern/cmrc
+	url = https://github.com/vector-of-bool/cmrc

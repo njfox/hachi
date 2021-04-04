@@ -55,6 +55,10 @@ Display* Chip8::get_display() {
     return &display;
 }
 
+Keyboard* Chip8::get_keyboard() {
+    return &keyboard;
+}
+
 uint64_t Chip8::get_clock_speed() {
     return clock_speed;
 }

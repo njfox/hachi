@@ -1,11 +1,12 @@
 #ifndef CPU_H
 #define CPU_H
 
+#include "include/display.h"
+#include "include/keyboard.h"
+
 #include <array>
 #include <cstdint>
 #include <random>
-
-#include "include/display.h"
 
 using std::array;
 
@@ -21,6 +22,7 @@ struct Registers {
 class Cpu {
     uint64_t clock_speed;
     Display* display;
+    Keyboard* keyboard;
     array<uint8_t, 0x1000>* ram;
     array<uint16_t, 16>* stack;
     Registers registers{};
@@ -86,9 +88,10 @@ class Cpu {
     void op_store_regs(Opcode op);
     void op_load_regs(Opcode op);
 public:
-    Cpu(uint64_t clock_speed, Display* display, array<uint8_t, 0x1000>* ram, array<uint16_t, 16>* stack) :
+    Cpu(uint64_t clock_speed, Display* display, Keyboard* keyboard, array<uint8_t, 0x1000>* ram, array<uint16_t, 16>* stack) :
         clock_speed{ clock_speed },
         display{ display },
+        keyboard{ keyboard },
         ram{ ram },
         stack{ stack } {
             rng.seed();

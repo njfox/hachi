@@ -1,4 +1,5 @@
 #include "include/cpu.h"
+
 #include <cstdint>
 #include <iostream>
 #include <random>
@@ -15,6 +16,9 @@ void Cpu::execute() {
         Opcode op = ram->at(registers.pc+1) | (ram->at(registers.pc) << 8);
         uint8_t prefix = op >> 12;
         (this->*opHandlers.at(prefix))(op);
+        if (registers.pc % 2 != 0) {
+            throw std::runtime_error{fmt::format("pc is odd: {}", registers.pc)};
+        }
     }  catch (std::exception& e) {
         std::cout << e.what() << std::endl;
         std::exit(EXIT_FAILURE);
@@ -200,6 +204,7 @@ void Cpu::op_sub_reg(Opcode op) {
         registers.general.at(0xF) = 0;
     }
     registers.general.at(x) = x_val - y_val;
+    registers.pc += 2;
 }
 
 void Cpu::op_shr(Opcode op) {
@@ -268,8 +273,8 @@ void Cpu::op_rnd(Opcode op) {
 }
 
 void Cpu::op_drw(Opcode op) {
-    auto x = static_cast<int8_t>(registers.general.at((op >> 8) & 0x0F));
-    auto y = static_cast<int8_t>(registers.general.at((op >> 4) & 0x0F));
+    auto x = registers.general.at((op >> 8) & 0x0F);
+    auto y = registers.general.at((op >> 4) & 0x0F);
     auto sprite = &ram->at(registers.i);
     uint8_t size = op & 0x0F;
     if (display->draw(x, y, sprite, size)) {
@@ -281,6 +286,21 @@ void Cpu::op_drw(Opcode op) {
 }
 
 void Cpu::op_skp_sknp(Opcode op) {
+    uint8_t key = (op >> 8) & 0x0F;
+    uint8_t subcode = op & 0xFF;
+    if (subcode == 0x9E) {
+        if (keyboard->is_key_down(key)) {
+            registers.pc += 4;
+            return;
+        }
+    } else if (subcode == 0xA1) {
+        if (!keyboard->is_key_down(key)) {
+            registers.pc += 4;
+            return;
+        }
+    } else {
+        throw std::runtime_error{ fmt::format("invalid skp or sknp subcode: {}", subcode) };
+    }
     registers.pc += 2;
 }
 
@@ -326,6 +346,12 @@ void Cpu::op_ld_from_dt(Opcode op) {
 }
 
 void Cpu::op_wait_key(Opcode op) {
+    uint8_t reg = (op >> 8) & 0x0F;
+    auto key = keyboard->is_key_down();
+    if (key == 0xFF) {
+        return; // Stop advancing program counter if a key is not down
+    }
+    registers.general.at(reg) = key;
     registers.pc += 2;
 }
 
