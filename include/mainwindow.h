@@ -13,7 +13,6 @@
 #include <QByteArray>
 
 class Hachi;
-class ScreenWidget;
 
 class MainWindow : public QMainWindow {
     Q_OBJECT
@@ -42,7 +41,6 @@ signals:
 private:
     QGraphicsScene* scene{};
     QGraphicsView* view{};
-    ScreenWidget* screenWidget{};
     Hachi* hachi{};
 
     QPixmap* canvas{};

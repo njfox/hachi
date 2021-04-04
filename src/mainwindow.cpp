@@ -5,8 +5,6 @@
 #include <cstdint>
 
 #include <QtWidgets>
-#include <QtMultimedia/QMediaPlayer>
-#include <QByteArray>
 
 #include <cmrc/cmrc.hpp>
 
@@ -25,14 +23,13 @@ MainWindow::MainWindow(QWidget *parent)
 
     chip8_display = new QImage(64, 32, QImage::Format_Mono);
     chip8_display->fill(0);
-//    canvas = new QPixmap(QPixmap::fromImage(chip8_display->scaled(canvas_width, canvas_height, Qt::KeepAspectRatio, Qt::SmoothTransformation)));
+    canvas = new QPixmap(QPixmap::fromImage(chip8_display->scaled(canvas_width, canvas_height, Qt::KeepAspectRatio, Qt::SmoothTransformation)));
 
-//    scene = new QGraphicsScene(this);
-//    view = new QGraphicsView(this);
-//    view->setScene(scene);
-//    setCentralWidget(view);
-//    scene->addPixmap(*canvas);
-    screenWidget = new ScreenWidget(this);
+    scene = new QGraphicsScene(this);
+    view = new QGraphicsView(this);
+    view->setScene(scene);
+    setCentralWidget(view);
+    scene->addPixmap(*canvas);
 
     hachi = new Hachi(this);
     connect(hachi, &Hachi::refresh_screen, this, &MainWindow::on_refresh_screen);
@@ -58,6 +55,7 @@ void MainWindow::setup_menus() {
     auto fileMenu = menuBar()->addMenu(tr("&File"));
     fileMenu->addAction(new QAction("Open ROM"));
     fileMenu->addAction(new QAction("Close ROM"));
+    fileMenu->addAction(new QAction("Quit"));
 
     auto emulationMenu = menuBar()->addMenu(tr("&Emulation"));
     emulationMenu->addAction(new QAction("Pause"));
@@ -66,6 +64,7 @@ void MainWindow::setup_menus() {
 
     connect(fileMenu->actions().at(0), &QAction::triggered, this, &MainWindow::on_open_rom);
     connect(fileMenu->actions().at(1), &QAction::triggered, this, &MainWindow::on_close_rom);
+    connect(fileMenu->actions().at(2), &QAction::triggered, this, &MainWindow::close);
 }
 
 void MainWindow::setup_sound() {
@@ -96,12 +95,12 @@ void MainWindow::on_refresh_screen(const PixelBuffer& pixel_buffer) {
         }
     }
     emit drawScreen(*chip8_display);
-//    QGraphicsItem* item = scene->items().at(0);
-//    scene->removeItem(item);
-//    delete item;
-//    delete canvas;
-//    canvas = new QPixmap(QPixmap::fromImage(chip8_display->scaled(canvas_width, canvas_height, Qt::KeepAspectRatio, Qt::SmoothTransformation)));
-//    scene->addPixmap(*canvas);
+    QGraphicsItem* item = scene->items().at(0);
+    scene->removeItem(item);
+    delete item;
+    delete canvas;
+    canvas = new QPixmap(QPixmap::fromImage(chip8_display->scaled(canvas_width, canvas_height, Qt::KeepAspectRatio, Qt::SmoothTransformation)));
+    scene->addPixmap(*canvas);
 }
 
 void MainWindow::on_open_rom() {
@@ -109,7 +108,7 @@ void MainWindow::on_open_rom() {
     if (running) { emit shutdown(); }
     while (running) { running = hachi->is_running(); } // wait for emulator to finish shutting down
 
-    auto filename = QFileDialog::getOpenFileName(this, tr("Open ROM"), QDir::homePath(), tr(".ch8"));
+    auto filename = QFileDialog::getOpenFileName(this, tr("Open ROM"), QDir::homePath(), tr("*.ch8"));
     hachi->load_rom(filename.toStdString());
 }
 
