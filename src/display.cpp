@@ -37,6 +37,6 @@ void Display::clear_screen() {
     }
 }
 
-PixelBuffer* Display::get_pixel_buffer() {
-    return &pixel_buffer;
+const PixelBuffer& Display::get_pixel_buffer() const {
+    return pixel_buffer;
 }

@@ -43,12 +43,15 @@ public:
     void load_default_sprites(uint16_t addr);
     void start();
     void execute_cycle();
+    void on_key_down(uint8_t key);
+    void on_key_up(uint8_t key);
+    void reboot();
     bool check_sound();
     bool check_delay();
     bool decrement_sound();
     bool decrement_delay();
     Display* get_display();
-    Keyboard* get_keyboard();
+    const Keyboard& get_keyboard() const;
     uint64_t get_clock_speed();
 };
 

@@ -13,6 +13,7 @@
 #include <QByteArray>
 
 class Hachi;
+class ScreenWidget;
 
 class MainWindow : public QMainWindow {
     Q_OBJECT
@@ -30,17 +31,18 @@ public slots:
     void on_close_rom();
     void on_beep();
     void on_stop_beep();
-    void on_refresh_screen(const PixelBuffer* pixel_buffer);
-    void shutdown_complete();
+    void on_refresh_screen(const PixelBuffer& pixel_buffer);
 
 signals:
     void keyPress(QKeyEvent* e);
     void keyRelease(QKeyEvent* e);
     void shutdown();
+    void drawScreen(const QImage& img);
 
 private:
     QGraphicsScene* scene{};
     QGraphicsView* view{};
+    ScreenWidget* screenWidget{};
     Hachi* hachi{};
 
     QPixmap* canvas{};

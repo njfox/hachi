@@ -29,7 +29,7 @@ class Cpu {
 
     using Opcode = uint16_t;
     using OpHandler = void(Cpu::*)(Opcode);
-    const array<OpHandler, 16> opHandlers {
+    array<OpHandler, 16> opHandlers {
         &Cpu::op_zero,
         &Cpu::op_jp,
         &Cpu::op_call,

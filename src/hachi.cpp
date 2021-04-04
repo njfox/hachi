@@ -10,21 +10,33 @@
 #include <QMainWindow>
 #include <QCoreApplication>
 
-Hachi::Hachi(MainWindow* parent, const std::string filename) : parent{ parent }, filename{ filename } {
+Hachi::Hachi(MainWindow* parent) : parent{ parent } {
     chip8 = std::make_unique<Chip8>();
-    chip8->load_default_sprites(0);
-    chip8->load_rom(filename);
     clock_speed = chip8->get_clock_speed();
-
     map_keys();
+    connect(parent, &MainWindow::keyPress, this, &Hachi::key_down);
+    connect(parent, &MainWindow::keyRelease, this, &Hachi::key_up);
+    connect(parent, &MainWindow::shutdown, this, &Hachi::shutdown);
+}
 
+Hachi::Hachi(MainWindow* parent, const std::string& filename) : parent{ parent }, filename{ filename } {
+    chip8 = std::make_unique<Chip8>();
+    clock_speed = chip8->get_clock_speed();
+    map_keys();
     connect(parent, &MainWindow::keyPress, this, &Hachi::key_down);
     connect(parent, &MainWindow::keyRelease, this, &Hachi::key_up);
     connect(parent, &MainWindow::shutdown, this, &Hachi::shutdown);
 
+    load_rom(filename);
+}
+
+void Hachi::load_rom(const std::string& filename) {
+    chip8->load_default_sprites(0);
+    chip8->load_rom(filename);
     timer = new QTimer(this);
     timer->setTimerType(Qt::PreciseTimer);
     connect(timer, &QTimer::timeout, this, &Hachi::execute);
+    running = true;
     timer->start(17);
 }
 
@@ -50,14 +62,14 @@ void Hachi::map_keys() {
 void Hachi::key_down(QKeyEvent* e) {
     auto key = e->key();
     if (keymap.find(key) != keymap.end()) {
-        chip8->get_keyboard()->set_key_down(keymap[key]);
+        chip8->on_key_down(keymap[key]);
     }
 }
 
 void Hachi::key_up(QKeyEvent* e) {
     auto key = e->key();
     if (keymap.find(key) != keymap.end()) {
-        chip8->get_keyboard()->set_key_up(keymap[key]);
+        chip8->on_key_up(keymap[key]);
     }
 }
 
@@ -73,7 +85,7 @@ void Hachi::execute() {
     for (size_t i{}; i < clock_speed / 60; i++) {
         QCoreApplication::processEvents();
         if (shutdown_requested) {
-            emit shutdown_complete();
+            shutdown_requested = false;
             break;
         }
         chip8->execute_cycle();
@@ -85,4 +97,10 @@ void Hachi::shutdown() {
     if (timer) {
         timer->stop();
     }
+    chip8->reboot();
+    running = false;
+}
+
+bool Hachi::is_running() {
+    return running;
 }

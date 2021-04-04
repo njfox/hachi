@@ -25,6 +25,7 @@ class Hachi : public QObject {
     QTimer* timer{};
     std::map<int, uint8_t> keymap{{}};
     bool shutdown_requested{ false };
+    bool running{ false };
 
     void map_keys();
 
@@ -37,13 +38,15 @@ public slots:
     void shutdown();
 
 signals:
-    void refresh_screen(const PixelBuffer* pixel_buffer);
+    void refresh_screen(const PixelBuffer& pixel_buffer);
     void beep();
     void stop_beep();
-    void shutdown_complete();
 
 public:
-    Hachi(MainWindow *parent, const std::string filename);
+    Hachi(MainWindow* parent = nullptr);
+    Hachi(MainWindow* parent, const std::string& filename);
+    void load_rom(const std::string& filename);
+    bool is_running();
 };
 
 #endif // HACHI_H

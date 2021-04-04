@@ -12,7 +12,7 @@ public:
     Display(){};
     bool draw(uint8_t x, uint8_t y, uint8_t* sprite, int8_t size);
     void clear_screen();
-    PixelBuffer* get_pixel_buffer();
+    const PixelBuffer& get_pixel_buffer() const;
 };
 
 #endif // DISPLAY_H

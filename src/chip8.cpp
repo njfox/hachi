@@ -13,7 +13,7 @@ void Chip8::load_rom(const string filename) {
 }
 
 void Chip8::load_default_sprites(uint16_t addr) {
-    memcpy(&ram, &default_sprites, sizeof(default_sprites));
+    memcpy(&ram.at(addr), &default_sprites, sizeof(default_sprites));
 }
 
 void Chip8::start() {
@@ -33,6 +33,22 @@ void Chip8::start() {
 
 void Chip8::execute_cycle() {
     cpu.execute();
+}
+
+void Chip8::on_key_down(uint8_t key) {
+    keyboard.set_key_down(key);
+}
+
+void Chip8::on_key_up(uint8_t key) {
+    keyboard.set_key_up(key);
+}
+
+void Chip8::reboot() {
+    ram.fill(0);
+    stack.fill(0);
+    display = Display{};
+    keyboard = Keyboard{};
+    cpu = Cpu{ clock_speed, &display, &keyboard, &ram, &stack };
 }
 
 bool Chip8::check_sound() {
@@ -55,8 +71,8 @@ Display* Chip8::get_display() {
     return &display;
 }
 
-Keyboard* Chip8::get_keyboard() {
-    return &keyboard;
+const Keyboard& Chip8::get_keyboard() const {
+    return keyboard;
 }
 
 uint64_t Chip8::get_clock_speed() {
