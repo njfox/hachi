@@ -12,7 +12,7 @@ using std::array;
 
 struct Registers {
     array<uint8_t, 16> general{{}};
-    uint8_t sp{};
+    uint8_t sp{0xFF};
     uint8_t dt{};
     uint8_t st{};
     uint16_t i{};

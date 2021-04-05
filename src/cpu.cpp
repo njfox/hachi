@@ -63,7 +63,7 @@ void Cpu::op_jp(Opcode op) {
 
 void Cpu::op_call(Opcode op) {
     registers.sp++;
-    stack->at(registers.sp) = registers.pc;
+    stack->at(registers.sp) = registers.pc + 2;
     registers.pc = op & 0xFFF;
 }
 
