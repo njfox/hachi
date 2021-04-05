@@ -12,18 +12,15 @@ bool Display::draw(uint8_t x, uint8_t y, uint8_t* sprite, int8_t size) {
     for (int8_t i{}; i < size; i++) {
         byte = *sprite;
         for (int8_t j{7}; j >= 0; j--) {
-            if (x >= buffer_width) { x = 0; }
-            if (y >= buffer_height) { y = 0; }
-            pixel = &pixel_buffer.at(x).at(y);
+            pixel = &pixel_buffer.at(x % buffer_width).at((y + i) % buffer_height);
             bool bit_set = byte & (1 << j);
-            if (*pixel == 0x01 && bit_set) {
+            if (*pixel && bit_set) {
                 collision = true;
             }
-            *pixel = *pixel ^ bit_set; // XOR with j'th bit
+            *pixel ^= bit_set; // XOR with j'th bit
             x++;
         }
         x = x_start;
-        y++;
         sprite++;
     }
     return collision;

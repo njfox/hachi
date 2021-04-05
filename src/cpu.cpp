@@ -385,7 +385,7 @@ void Cpu::op_store_bcd(Opcode op) {
     auto dest = registers.i;
     ram->at(dest) = value / 100;
     ram->at(dest+1) = (value % 100) / 10;
-    ram->at(dest+2) = (value % 100) % 10;
+    ram->at(dest+2) = value % 10;
     registers.pc += 2;
 }
 
