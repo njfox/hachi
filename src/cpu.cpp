@@ -16,9 +16,6 @@ void Cpu::execute() {
         Opcode op = ram->at(registers.pc+1) | (ram->at(registers.pc) << 8);
         uint8_t prefix = op >> 12;
         (this->*opHandlers.at(prefix))(op);
-        if (registers.pc % 2 != 0) {
-            throw std::runtime_error{fmt::format("pc is odd: {}", registers.pc)};
-        }
     }  catch (std::exception& e) {
         std::cout << e.what() << std::endl;
         std::exit(EXIT_FAILURE);

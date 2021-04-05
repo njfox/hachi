@@ -8,7 +8,7 @@
 void Chip8::load_rom(const string filename) {
     std::ifstream input(filename, std::ios::in|std::ios::binary);
     char* out = reinterpret_cast<char*>(&ram[0x200]);
-    input.read(out, 0xDFF);
+    input.read(out, ram.size() - 0x200);
     input.close();
 }
 
